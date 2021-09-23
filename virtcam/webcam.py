@@ -33,6 +33,7 @@ class Webcam(FrameSource):
             while not grabbed:
                 grabbed, image = self.camera.read()
 
+            image.flags.writeable = False
             self.frame = Frame(self.config, image, self.fullmask)
             self.current_id = frame_id
         # debug.frame(f"Webcam:next[{frame_id}]", self.frame)

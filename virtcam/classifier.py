@@ -18,6 +18,7 @@ class SelfieSegmentator(FrameFilter):
     def next(self, frame_id: int) -> Frame:
         frame = self.source.next(frame_id)
         mask = self.classifier.process(frame.image).segmentation_mask
+        mask.flags.writeable = False
 
         return Frame(frame.config, frame.image, mask)
 
@@ -61,6 +62,7 @@ class HolisticDrawer(FrameFilter):
         #     mp_holistic.POSE_CONNECTIONS,
         #     landmark_drawing_spec=styleL,
         # )
+        image.flags.writeable = False
 
         return Frame(frame.config, image, frame.mask)
 
@@ -100,6 +102,7 @@ class FaceMeshDrawer(FrameFilter):
                     landmark_drawing_spec=None,
                     connection_drawing_spec=styleC,
                 )
+        image.flags.writeable = False
 
         return Frame(frame.config, image, frame.mask)
 
@@ -130,6 +133,7 @@ class HandDrawer(FrameFilter):
                 mp_drawing.draw_landmarks(
                     image, hand_landmarks, mp_hands.HAND_CONNECTIONS, styleHL, styleHC
                 )
+        image.flags.writeable = False
 
         return Frame(frame.config, image, frame.mask)
 

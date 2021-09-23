@@ -13,6 +13,7 @@ class Erode(FrameFilter):
     def next(self, frame_id: int) -> Frame:
         frame = self.source.next(frame_id)
         image = cv2.erode(frame.image, self.kernel, iterations=None)
+        image.flags.writeable = False
         return Frame(frame.config, image, frame.mask)
 
     @staticmethod
@@ -40,6 +41,7 @@ class Hologram(FrameFilter):
         holo_blur = cv2.addWeighted(holo_blur, 0.4, shift_image(holo.copy(), -5, -5), 0.6, 0)
         # combine with the original color, oversaturated
         image = cv2.addWeighted(frame.image, 0.5, holo_blur, 0.6, 0)
+        image.flags.writeable = False
 
         return Frame(frame.config, image, frame.mask)
 

@@ -27,6 +27,9 @@ DEFAULT_CONFIG = StreamConfig(640, 480, DEFAULT_FPS)
 DEFAULT_FRAME = Image(640, 480)
 DEFAULT_MASK = Mask(640, 480)
 
+DEFAULT_FRAME.flags.writeable = False
+DEFAULT_MASK.flags.writeable = False
+
 
 class FrameProcessingBase:
     def __init__(self, config: StreamConfig):
@@ -49,7 +52,7 @@ class FrameProcessor(FrameProcessingBase):
 
     @property
     def fullmask(self) -> np.ndarray:
-        return Mask(1, 1)
+        return DEFAULT_MASK
 
     @abstractmethod
     def next(self, frame_id: int) -> Frame:
@@ -76,6 +79,7 @@ class FrameSource(FrameProcessor):
     def __init__(self, config: StreamConfig = None):
         super().__init__(config or DEFAULT_CONFIG)
         self._fullmask = Mask(config.width, config.height) if config else DEFAULT_MASK
+        self._fullmask.flags.writeable = False
         FrameSource.cameras.append(self)
 
     @property
@@ -85,6 +89,7 @@ class FrameSource(FrameProcessor):
     def _init_config(self, config: StreamConfig, mask=None):
         self._config = config
         self._fullmask = Mask(config.width, config.height) if mask is None else mask
+        self._fullmask.flags.writeable = False
 
     @abstractmethod
     def grab(self) -> bool:

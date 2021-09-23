@@ -7,7 +7,16 @@ from virtcam.fade import CrossFade
 from virtcam.effects import Erode, Hologram
 from virtcam.misc import DisplayMask, MaskPassFilter, MaskRunningAverage
 from virtcam.base import StreamConfig
-from virtcam.source import MatteFrameSource, BLACK, BLUE, GREEN, RED, WHITE, ImageSource
+from virtcam.source import (
+    MatteFrameSource,
+    BLACK,
+    BLUE,
+    GREEN,
+    RED,
+    WHITE,
+    ImageSource,
+    VideoSource,
+)
 from virtcam.webcam import Webcam
 
 
@@ -17,16 +26,21 @@ def main():
 
     # webcam = Webcam()
     # image1 = ImageSource("images/test-signal.jpg")
-    image2 = ImageSource("images/test_frame.png", "images/test_mask.png")
+    image2 = ImageSource("images/person2.jpg", "images/person2_mask.png")
+    vid1 = VideoSource("images/background-itsfine.gif")
+    # green = MatteFrameSource(config, "green")
 
-    # camera = MatteFrameSource(config, "green") >> Camera.p
+    # camera = green >> Camera.p
     # camera = webcam >> Camera.p
+
+    # camera = vid1 >> Camera.p
 
     # camera = image1 >> Camera.p
     # camera = image2 >> Camera.p
     # camera = image2 >> DisplayMask.p(WHITE) >> Camera.p
 
-    camera = image2 >> Hologram.p >> Composite.p(image2) >> Camera.p
+    # camera = image2 >> Hologram.p >> Composite.p(image2) >> Camera.p
+    # camera = image2 >> SelfieSegmentator.p >> Camera.p
 
     # camera = (
     #     webcam
@@ -39,6 +53,7 @@ def main():
 
     # camera = webcam >> Hologram.p >> Camera.p
     # camera = webcam >> SelfieSegmentator.p >> Camera.p
+    camera = image2 >> Composite.p(vid1) >> Camera.p
 
     # camera = webcam >> SelfieSegmentator.p >> Composite.p(webcam >> Hologram.p) >> Camera.p
     # camera = webcam >> SelfieSegmentator.p >> Hologram.p >> Composite.p(webcam) >> Camera.p
@@ -48,7 +63,7 @@ def main():
     #     >> SelfieSegmentator.p
     #     >> MaskPassFilter.p(0.1, 0.9)
     #     >> MaskRunningAverage.p(0.2)
-    #     >> Composite.p(config >> StaticFrameSource.p("green"))
+    #     >> Composite.p(green)
     #     >> Camera.p
     # )
 

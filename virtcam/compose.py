@@ -15,11 +15,13 @@ class Composite(FrameFilter):
         frame = self.source.next(frame_id)
         back = self.background.next(frame_id)
 
-        image = frame.image
+        image = frame.image.copy()
         mask = frame.mask
 
         for c in range(image.shape[2]):
             image[:, :, c] = image[:, :, c] * mask + back.image[:, :, c] * (1 - mask)
+
+        image.flags.writeable = False
 
         return Frame(frame.config, image, back.mask)
 
