@@ -1,7 +1,7 @@
 import cv2
 
 import virtcam.debug as debug
-from virtcam.base import Frame, FrameSource, Image, Mask, StreamConfig
+from virtcam.base import Frame, FrameSource, Image, Mask, StreamConfig, immutable
 
 
 class Webcam(FrameSource):
@@ -33,8 +33,7 @@ class Webcam(FrameSource):
             while not grabbed:
                 grabbed, image = self.camera.read()
 
-            image.flags.writeable = False
-            self.frame = Frame(self.config, image, self.fullmask)
+            self.frame = Frame(self.config, immutable(image), self.fullmask)
             self.current_id = frame_id
         # debug.frame(f"Webcam:next[{frame_id}]", self.frame)
         return self.frame

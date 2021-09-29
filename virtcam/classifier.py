@@ -7,7 +7,7 @@ from mediapipe.python.solutions import holistic as mp_holistic
 from mediapipe.python.solutions import selfie_segmentation as mp_selfie_segmentation
 from pipey import Pipeable
 
-from virtcam.base import BLACK, Frame, FrameFilter, FrameProcessor, Image
+from virtcam.base import BLACK, Frame, FrameFilter, FrameProcessor, Image, immutable
 
 
 class SelfieSegmentator(FrameFilter):
@@ -17,8 +17,7 @@ class SelfieSegmentator(FrameFilter):
 
     def next(self, frame_id: int) -> Frame:
         frame = self.source.next(frame_id)
-        mask = self.classifier.process(frame.image).segmentation_mask
-        mask.flags.writeable = False
+        mask = immutable(self.classifier.process(frame.image).segmentation_mask)
 
         return Frame(frame.config, frame.image, mask)
 
@@ -102,9 +101,8 @@ class FaceMeshDrawer(FrameFilter):
                     landmark_drawing_spec=None,
                     connection_drawing_spec=styleC,
                 )
-        image.flags.writeable = False
 
-        return Frame(frame.config, image, frame.mask)
+        return Frame(frame.config, immutable(image), frame.mask)
 
     @staticmethod
     @Pipeable

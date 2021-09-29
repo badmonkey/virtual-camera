@@ -33,6 +33,8 @@ class Camera(FrameSink):
         signal.signal(signal.SIGTSTP, self.handle_snapshot)
         print("No consumers, paused")
 
+        debug.config("camera:init:config", self.config)
+
     def check_consumers(self):
         for event in self.inotify.read(0):
             for flag in flags.from_mask(event.mask):
@@ -62,7 +64,7 @@ class Camera(FrameSink):
             # self.load_images()
 
     def run(self):
-        fid = 0
+        fid = 1
         while True:
             self.check_consumers()
 

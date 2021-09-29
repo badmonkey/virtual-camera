@@ -7,6 +7,8 @@ from virtcam.fade import CrossFade
 from virtcam.effects import Erode, Hologram
 from virtcam.misc import DisplayMask, MaskPassFilter, MaskRunningAverage
 from virtcam.base import StreamConfig
+from virtcam.basic import Mirror
+from virtcam.scale import Embed
 from virtcam.source import (
     MatteFrameSource,
     BLACK,
@@ -24,9 +26,9 @@ from virtcam.webcam import Webcam
 def main():
     config = StreamConfig(960, 540, 30)
 
-    # webcam = Webcam()
+    webcam = Webcam() >> Mirror.p >> Embed.p(config)
     # image1 = ImageSource("images/test-signal.jpg")
-    image2 = ImageSource("images/person2.jpg", "images/person2_mask.png")
+    # image2 = ImageSource("images/person2.jpg", "images/person2_mask.png")
     vid1 = VideoSource("images/background-itsfine.gif")
     # green = MatteFrameSource(config, "green")
 
@@ -52,8 +54,8 @@ def main():
     # )
 
     # camera = webcam >> Hologram.p >> Camera.p
-    # camera = webcam >> SelfieSegmentator.p >> Camera.p
-    camera = image2 >> Composite.p(vid1) >> Camera.p
+    camera = webcam >> SelfieSegmentator.p >> Composite.p(vid1) >> Camera.p
+    # camera = image2 >> Composite.p(vid1) >> Camera.p
 
     # camera = webcam >> SelfieSegmentator.p >> Composite.p(webcam >> Hologram.p) >> Camera.p
     # camera = webcam >> SelfieSegmentator.p >> Hologram.p >> Composite.p(webcam) >> Camera.p

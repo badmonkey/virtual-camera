@@ -1,5 +1,5 @@
 import cv2
-from virtcam.base import Frame, Image, StreamConfig, FrameSource, DEFAULT_FPS
+from virtcam.base import Frame, Image, StreamConfig, FrameSource, DEFAULT_FPS, immutable
 from virtcam.color import BLACK, WHITE, RED, GREEN, BLUE, color_by_name
 import virtcam.debug as debug
 
@@ -9,7 +9,6 @@ class MatteFrameSource(FrameSource):
         super().__init__(config)
         rgbcolor = color_by_name(color)
         image = Image(config.width, config.height, rgbcolor)
-        image.flags.writeable = False
         self.frame = Frame(config, image, self.fullmask)
 
     def next(self, frame_id: int) -> Frame:
@@ -34,14 +33,14 @@ class ImageSource(FrameSource):
                 mask, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F
             )
             mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+            immutable(mask)
             # inverted_mask = 1 - mask
         else:
             mask = None
 
         self._init_config(StreamConfig(sizex, sizey, DEFAULT_FPS), mask)
 
-        image.flags.writeable = False
-        self.frame = Frame(self.config, image, self.fullmask)
+        self.frame = Frame(self.config, immutable(image), self.fullmask)
 
         debug.config("Image:init:config", self.config)
 
@@ -80,8 +79,7 @@ class VideoSource(FrameSource):
                 ret, image = self.vid.read()
                 assert ret, "cannot read frame"
 
-            image.flags.writeable = False
-            self.frame = Frame(self.config, image, self.fullmask)
+            self.frame = Frame(self.config, immutable(image), self.fullmask)
             self.current_id = frame_id
 
         # debug.frame(f"Video:next[{frame_id}]", self.frame)

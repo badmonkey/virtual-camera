@@ -1,3 +1,4 @@
+import contextlib
 from abc import abstractmethod
 from collections import namedtuple
 
@@ -10,25 +11,40 @@ from pipey import Pipeable
 import virtcam.debug as debug
 from virtcam.color import RGB_SIZE, WHITE, IntegerRGB, BLACK
 
+PROBE_FRAME = -1
+
 StreamConfig = namedtuple("StreamConfig", ("width", "height", "fps"))
 Frame = namedtuple("Frame", ("config", "image", "mask"))
 
 
+def immutable(data: np.ndarray) -> np.ndarray:
+    data.flags.writeable = False
+    return data
+
+
+@contextlib.contextmanager
+def mutating(array: np.ndarray):
+    array.flags.writeable = True
+    yield array
+    array.flags.writeable = False
+
+
 def Image(width: int, height: int, dflt: IntegerRGB = None) -> np.ndarray:
-    return np.full((height, width, RGB_SIZE), dflt or WHITE, dtype=np.uint8)
+    data = np.full((height, width, RGB_SIZE), dflt or WHITE, dtype=np.uint8)
+    data.flags.writeable = False
+    return data
 
 
 def Mask(width: int, height: int, dflt: float = None) -> np.ndarray:
-    return np.full((height, width), dflt or 1.0, dtype=np.float32)
+    data = np.full((height, width), dflt or 1.0, dtype=np.float32)
+    data.flags.writeable = False
+    return data
 
 
 DEFAULT_FPS = 30
 DEFAULT_CONFIG = StreamConfig(640, 480, DEFAULT_FPS)
 DEFAULT_FRAME = Image(640, 480)
 DEFAULT_MASK = Mask(640, 480)
-
-DEFAULT_FRAME.flags.writeable = False
-DEFAULT_MASK.flags.writeable = False
 
 
 class FrameProcessingBase:
@@ -79,7 +95,6 @@ class FrameSource(FrameProcessor):
     def __init__(self, config: StreamConfig = None):
         super().__init__(config or DEFAULT_CONFIG)
         self._fullmask = Mask(config.width, config.height) if config else DEFAULT_MASK
-        self._fullmask.flags.writeable = False
         FrameSource.cameras.append(self)
 
     @property
@@ -89,7 +104,6 @@ class FrameSource(FrameProcessor):
     def _init_config(self, config: StreamConfig, mask=None):
         self._config = config
         self._fullmask = Mask(config.width, config.height) if mask is None else mask
-        self._fullmask.flags.writeable = False
 
     @abstractmethod
     def grab(self) -> bool:

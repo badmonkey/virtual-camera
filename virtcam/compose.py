@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from pipey import Pipeable
 
-from virtcam.base import Frame, FrameFilter, FrameProcessor, Image, Mask
+from virtcam.base import Frame, FrameFilter, FrameProcessor, Image, Mask, immutable
 
 
 class Composite(FrameFilter):
@@ -21,9 +21,7 @@ class Composite(FrameFilter):
         for c in range(image.shape[2]):
             image[:, :, c] = image[:, :, c] * mask + back.image[:, :, c] * (1 - mask)
 
-        image.flags.writeable = False
-
-        return Frame(frame.config, image, back.mask)
+        return Frame(frame.config, immutable(image), back.mask)
 
     @staticmethod
     @Pipeable
