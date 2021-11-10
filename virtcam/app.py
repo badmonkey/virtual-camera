@@ -17,7 +17,8 @@ from virtcam.source import (
     RED,
     WHITE,
     ImageSource,
-    VideoSource,
+    VideoFileSource,
+    StreamingVideoSource,
 )
 from virtcam.webcam import Webcam
 
@@ -26,10 +27,12 @@ from virtcam.webcam import Webcam
 def main():
     config = StreamConfig(960, 540, 30)
 
-    webcam = Webcam() >> Mirror.p >> Embed.p(config)
+    webcam = Webcam() >> Embed.p(config)
     # image1 = ImageSource("images/test-signal.jpg")
     # image2 = ImageSource("images/person2.jpg", "images/person2_mask.png")
-    vid1 = VideoSource("images/background-itsfine.gif")
+    # vid1 = VideoFileSource("images/background-itsfine.gif")
+    # vid1 = StreamingVideoSource("rtmp://localhost:1935/desktop")
+    vid1 = StreamingVideoSource("rtsp://localhost:8554/desktop")
     # green = MatteFrameSource(config, "green")
 
     # camera = green >> Camera.p

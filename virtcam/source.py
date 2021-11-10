@@ -49,7 +49,11 @@ class ImageSource(FrameSource):
         return self.frame
 
 
-class VideoSource(FrameSource):
+class VideoFileSource(FrameSource):
+    """
+    Video source that we can seek to a frame (the first in particular).
+    """
+
     def __init__(self, imgFile: str, maskFile: str = None):
         super().__init__()
         self.current_id = -1
@@ -60,7 +64,7 @@ class VideoSource(FrameSource):
         fps = self.vid.get(cv2.CAP_PROP_FPS)
 
         ret, frame = self.vid.read()
-        assert ret, f"Video:init: cannot read frame from {imgFile}"
+        assert ret, f"VideoFile:init: cannot read frame from {imgFile}"
 
         sizey, sizex = frame.shape[0], frame.shape[1]
         self.vid.set(cv2.CAP_PROP_POS_FRAMES, 0)
@@ -69,7 +73,7 @@ class VideoSource(FrameSource):
 
         self.frame = Frame(self.config, frame, self.fullmask)
 
-        debug.config("Video:init:config", self.config)
+        debug.config("VideoFile:init:config", self.config)
 
     def next(self, frame_id: int) -> Frame:
         if not self.frame or self.current_id != frame_id:
@@ -82,5 +86,44 @@ class VideoSource(FrameSource):
             self.frame = Frame(self.config, immutable(image), self.fullmask)
             self.current_id = frame_id
 
-        # debug.frame(f"Video:next[{frame_id}]", self.frame)
+        # debug.frame(f"VideoFile:next[{frame_id}]", self.frame)
+        return self.frame
+
+
+class StreamingVideoSource(FrameSource):
+    """
+    A Live Video Stream (so no seeking to frames)
+    """
+
+    def __init__(self, imgFile: str, maskFile: str = None):
+        super().__init__()
+        self.current_id = -1
+
+        self.vid = cv2.VideoCapture(imgFile)
+        if not self.vid.isOpened():
+            raise RuntimeError(f"Couldn't open video '{imgFile}'")
+        fps = self.vid.get(cv2.CAP_PROP_FPS)
+
+        ret, frame = self.vid.read()
+        assert ret, f"StreamingVideo:init: cannot read frame from {imgFile}"
+
+        sizey, sizex = frame.shape[0], frame.shape[1]
+
+        self._init_config(StreamConfig(sizex, sizey, fps))
+
+        self.frame = Frame(self.config, frame, self.fullmask)
+
+        debug.config("StreamingVideo:init:config", self.config)
+
+    def next(self, frame_id: int) -> Frame:
+        if not self.frame or self.current_id != frame_id:
+            ret, image = self.vid.read()
+            if not ret:
+                ret, image = self.vid.read()
+                assert ret, "cannot read frame"
+
+            self.frame = Frame(self.config, immutable(image), self.fullmask)
+            self.current_id = frame_id
+
+        # debug.frame(f"StreamingVideo:next[{frame_id}]", self.frame)
         return self.frame
